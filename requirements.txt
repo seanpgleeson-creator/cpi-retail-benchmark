@@ -1,0 +1,10 @@
+playwright
+requests
+pydantic
+sqlalchemy
+python-dotenv
+tenacity
+pytest
+dateparser
+pytz
+pandas

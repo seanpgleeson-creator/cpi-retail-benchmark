@@ -129,7 +129,7 @@ response = requests.get("http://localhost:8000/api/v1/comparisons/latest")
 data = response.json()
 
 # Get retailer data for specific period
-response = requests.get("http://localhost:8000/api/v1/retailers/target/prices", 
+response = requests.get("http://localhost:8000/api/v1/retailers/target/prices",
                        params={"zip_code": "55331", "period": "2025-09"})
 ```
 

@@ -355,7 +355,7 @@ Verdict: Target ABOVE BLS month-over-month trend
 BLS_API_KEY=optional_key_for_higher_limits
 ZIP_CODE=55331
 
-# Scraping Configuration  
+# Scraping Configuration
 HEADLESS=true
 SCRAPE_MAX_PAGES=5
 SCRAPE_DELAY_RANGE_MS=500-1500

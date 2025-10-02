@@ -1,7 +1,7 @@
 # Product Requirements Document: Multi-Retailer CPI Price Benchmark Platform
 
-**Document Version:** 1.0  
-**Date:** September 30, 2025  
+**Document Version:** 1.0
+**Date:** September 30, 2025
 **Status:** Final Draft
 
 ## Executive Summary
@@ -49,28 +49,28 @@ To become the definitive platform for understanding retail price dynamics in rel
 ## Core Use Cases
 
 ### Use Case 1: Multi-Retailer Price Comparison Analysis
-**Actor:** Data Analyst  
-**Goal:** Compare how multiple retailers' price changes align with BLS inflation data  
+**Actor:** Data Analyst
+**Goal:** Compare how multiple retailers' price changes align with BLS inflation data
 **Scenario:** Analyst selects Target, Walmart, and Kroger for dairy products, chooses Minneapolis metro area, and generates comparison report showing each retailer's price change vs. BLS for the latest release period.
 
 ### Use Case 2: Real-Time Inflation Tracking
-**Actor:** Economic Researcher  
-**Goal:** Monitor real-time retail price changes between BLS releases  
+**Actor:** Economic Researcher
+**Goal:** Monitor real-time retail price changes between BLS releases
 **Scenario:** Researcher sets up alerts for when retailer price changes exceed 0.5pp difference from last BLS release, receives notifications when significant divergences occur.
 
 ### Use Case 3: Category-Specific Analysis
-**Actor:** Business Intelligence Analyst  
-**Goal:** Analyze pricing trends across different product categories  
+**Actor:** Business Intelligence Analyst
+**Goal:** Analyze pricing trends across different product categories
 **Scenario:** Analyst selects multiple BLS product categories (milk, cheese, bread, ground beef), compares retailer pricing patterns across categories to identify which product groups show consistent pricing alignment or divergence.
 
 ### Use Case 4: Geographic Price Variation Analysis
-**Actor:** Policy Researcher  
-**Goal:** Understand regional price differences relative to national BLS data  
+**Actor:** Policy Researcher
+**Goal:** Understand regional price differences relative to national BLS data
 **Scenario:** Researcher compares retailer pricing in different metro areas (Minneapolis, Chicago, Los Angeles) against national BLS averages to identify regional inflation patterns.
 
 ### Use Case 5: Automated Data Export for Research
-**Actor:** Academic Research Pipeline  
-**Goal:** Automatically extract data for econometric analysis  
+**Actor:** Academic Research Pipeline
+**Goal:** Automatically extract data for econometric analysis
 **Scenario:** Automated system pulls latest comparison data via API/export, processes data for inclusion in inflation forecasting models.
 
 ## Functional Requirements
@@ -108,7 +108,7 @@ To become the definitive platform for understanding retail price dynamics in rel
 - **REQ-2.2.2**: System SHALL calculate percentage point differences between retailer and BLS changes
 - **REQ-2.2.3**: System SHALL generate verdicts using ±0.2pp threshold:
   - "ABOVE": Retailer change > BLS change + 0.2pp
-  - "INLINE": |Retailer change - BLS change| ≤ 0.2pp  
+  - "INLINE": |Retailer change - BLS change| ≤ 0.2pp
   - "BELOW": Retailer change < BLS change - 0.2pp
 - **REQ-2.2.4**: System SHALL support multi-retailer cross-comparison analysis
 
@@ -346,7 +346,7 @@ The phased development approach ensures rapid delivery of core value while build
 
 **Document Approval:**
 - Product Owner: [Name]
-- Engineering Lead: [Name]  
+- Engineering Lead: [Name]
 - Data Science Lead: [Name]
 - Legal Review: [Name]
 

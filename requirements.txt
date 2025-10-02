@@ -30,7 +30,7 @@ python-dotenv>=1.0.0,<2.0.0
 pytz>=2023.3
 
 # Optional: For enhanced functionality
-redis>=5.0.0,<6.0.0  # For caching
+redis>=5.0.0,<7.0.0  # For caching
 requests>=2.31.0,<3.0.0
 safety>=2.3.0,<3.0.0
 sqlalchemy>=2.0.0,<3.0.0

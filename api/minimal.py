@@ -116,3 +116,30 @@ async def diagnostic_step_4() -> Dict[str, Any]:
         results["bls_client"] = f"❌ {e}"
     
     return {"step": 4, "bls_imports": results}
+
+
+@app.get("/test-packages")
+async def test_packages() -> Dict[str, Any]:
+    """Test if ANY external packages work in Vercel"""
+    results = {}
+    
+    try:
+        import requests  # noqa: F401
+        results["requests"] = "✅ OK"
+    except Exception as e:
+        results["requests"] = f"❌ {e}"
+    
+    try:
+        import httpx  # noqa: F401
+        results["httpx"] = "✅ OK"
+    except Exception as e:
+        results["httpx"] = f"❌ {e}"
+    
+    try:
+        import sys
+        results["python_path"] = sys.path
+        results["python_version"] = sys.version
+    except Exception as e:
+        results["python_info"] = f"❌ {e}"
+    
+    return {"package_test": results}

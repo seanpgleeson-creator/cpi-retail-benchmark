@@ -15,18 +15,28 @@ from app.config import settings
 # Import routers conditionally to avoid crashes
 bls_router = None
 simple_bls_router = None
+processing_router = None
 
 try:
     from app.api.simple_bls import router as simple_bls_router
+
     print("✅ Simple BLS router loaded")
 except Exception as e:
     print(f"⚠️ Simple BLS router failed: {e}")
 
 try:
     from app.api.bls_routes import router as bls_router
+
     print("✅ Full BLS router loaded")
 except Exception as e:
     print(f"⚠️ Full BLS router failed: {e}")
+
+try:
+    from app.api.processing_routes import router as processing_router
+
+    print("✅ Processing router loaded")
+except Exception as e:
+    print(f"⚠️ Processing router failed: {e}")
 
 # Create FastAPI application
 app = FastAPI(
@@ -57,6 +67,10 @@ if simple_bls_router:
 if bls_router:
     app.include_router(bls_router)
     print("✅ Full BLS router included")
+
+if processing_router:
+    app.include_router(processing_router)
+    print("✅ Processing router included")
 
 
 @app.get("/")
@@ -123,62 +137,70 @@ async def debug_imports() -> Dict[str, Any]:
 
     try:
         from app.config import settings  # noqa: F401
+
         import_status["config"] = "✅ OK"
     except Exception as e:
         import_status["config"] = f"❌ Error: {e}"
 
     try:
         from app.bls_client import BLSAPIClient  # noqa: F401
+
         import_status["bls_client"] = "✅ OK"
     except Exception as e:
         import_status["bls_client"] = f"❌ Error: {e}"
 
     try:
         import httpx  # noqa: F401
+
         import_status["httpx"] = "✅ OK"
     except Exception as e:
         import_status["httpx"] = f"❌ Error: {e}"
 
     try:
         import tenacity  # noqa: F401
+
         import_status["tenacity"] = "✅ OK"
     except Exception as e:
         import_status["tenacity"] = f"❌ Error: {e}"
 
-    return {
-        "imports": import_status,
-        "routers_loaded": {
-            "simple_bls_router": simple_bls_router is not None,
-            "bls_router": bls_router is not None,
-        },
-        "timestamp": datetime.now().isoformat(),
-    }
+        return {
+            "imports": import_status,
+            "routers_loaded": {
+                "simple_bls_router": simple_bls_router is not None,
+                "bls_router": bls_router is not None,
+                "processing_router": processing_router is not None,
+            },
+            "timestamp": datetime.now().isoformat(),
+        }
 
 
 @app.get("/test-packages")
 async def test_packages() -> Dict[str, Any]:
     """Test if ANY external packages work in Vercel"""
     results = {}
-    
+
     try:
         import requests  # noqa: F401
+
         results["requests"] = "✅ OK"
     except Exception as e:
         results["requests"] = f"❌ {e}"
-    
+
     try:
         import httpx  # noqa: F401
+
         results["httpx"] = "✅ OK"
     except Exception as e:
         results["httpx"] = f"❌ {e}"
-    
+
     try:
         import sys
+
         results["python_path"] = sys.path[:3]  # First 3 paths only
         results["python_version"] = sys.version
     except Exception as e:
         results["python_info"] = f"❌ {e}"
-    
+
     return {"package_test": results, "timestamp": datetime.now().isoformat()}
 
 
@@ -191,15 +213,18 @@ async def app_status() -> Dict[str, Any]:
         "routers_loaded": {
             "simple_bls_router": simple_bls_router is not None,
             "bls_router": bls_router is not None,
+            "processing_router": processing_router is not None,
         },
         "available_endpoints": [
             "/",
-            "/health", 
+            "/health",
             "/test-packages",
             "/debug/imports",
             "/debug/app-status",
             "/api/v1/status",
-            "/api/v1/config"
+            "/api/v1/config",
+            "/api/v1/processing/health",
+            "/docs",
         ],
         "timestamp": datetime.now().isoformat(),
     }

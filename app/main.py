@@ -2,6 +2,7 @@
 Main FastAPI application for CPI Retail Benchmark Platform
 """
 
+from datetime import datetime
 from typing import Any, Dict
 
 from fastapi import FastAPI, Request
@@ -10,6 +11,7 @@ from fastapi.responses import JSONResponse
 
 from app import __version__
 from app.api.bls_routes import router as bls_router
+from app.api.simple_bls import router as simple_bls_router
 from app.config import settings
 
 # Create FastAPI application
@@ -34,7 +36,11 @@ app.add_middleware(
 )
 
 # Include API routers
-app.include_router(bls_router)
+app.include_router(simple_bls_router)  # Simple version for debugging
+try:
+    app.include_router(bls_router)  # Full version with error handling
+except Exception as e:
+    print(f"Warning: Could not load full BLS router: {e}")
 
 
 @app.get("/")
@@ -91,6 +97,45 @@ async def get_config() -> Dict[str, Any]:
         "default_zip_code": settings.zip_code,
         "bls_api_configured": settings.bls_api_key is not None,
         "default_bls_series": settings.default_bls_series,
+    }
+
+
+@app.get("/debug/imports")
+async def debug_imports() -> Dict[str, Any]:
+    """Debug endpoint to check what imports are working"""
+    import_status = {}
+
+    try:
+        from app.config import settings  # noqa: F401
+
+        import_status["config"] = "✅ OK"
+    except Exception as e:
+        import_status["config"] = f"❌ Error: {e}"
+
+    try:
+        from app.bls_client import BLSAPIClient  # noqa: F401
+
+        import_status["bls_client"] = "✅ OK"
+    except Exception as e:
+        import_status["bls_client"] = f"❌ Error: {e}"
+
+    try:
+        import httpx  # noqa: F401
+
+        import_status["httpx"] = "✅ OK"
+    except Exception as e:
+        import_status["httpx"] = f"❌ Error: {e}"
+
+    try:
+        import tenacity  # noqa: F401
+
+        import_status["tenacity"] = "✅ OK"
+    except Exception as e:
+        import_status["tenacity"] = f"❌ Error: {e}"
+
+    return {
+        "imports": import_status,
+        "timestamp": datetime.now().isoformat(),
     }
 
 

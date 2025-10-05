@@ -1,12 +1,12 @@
 {
   "version": 2,
   "name": "cpi-retail-benchmark",
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.11",
+      "maxDuration": 30
     }
-  ],
+  },
   "routes": [
     {
       "src": "/(.*)",
@@ -15,12 +15,6 @@
   ],
   "env": {
     "PYTHON_VERSION": "3.11"
-  },
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.11",
-      "maxDuration": 30
-    }
   },
   "regions": ["iad1"],
   "github": {

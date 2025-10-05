@@ -10,9 +10,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app import __version__
-from app.api.bls_routes import router as bls_router
-from app.api.simple_bls import router as simple_bls_router
 from app.config import settings
+
+# Import routers conditionally to avoid crashes
+bls_router = None
+simple_bls_router = None
+
+try:
+    from app.api.simple_bls import router as simple_bls_router
+    print("✅ Simple BLS router loaded")
+except Exception as e:
+    print(f"⚠️ Simple BLS router failed: {e}")
+
+try:
+    from app.api.bls_routes import router as bls_router
+    print("✅ Full BLS router loaded")
+except Exception as e:
+    print(f"⚠️ Full BLS router failed: {e}")
 
 # Create FastAPI application
 app = FastAPI(
@@ -35,19 +49,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API routers
-app.include_router(simple_bls_router)  # Simple version for debugging
+# Include API routers conditionally
+if simple_bls_router:
+    app.include_router(simple_bls_router)
+    print("✅ Simple BLS router included")
 
-# Try to include BLS router, but don't fail if dependencies are missing
-try:
-    # Test if httpx is available first
-    import httpx  # noqa: F401
-    app.include_router(bls_router)  # Full version with error handling
-    print("✅ BLS router loaded successfully")
-except ImportError as e:
-    print(f"⚠️  BLS router not loaded - missing dependency: {e}")
-except Exception as e:
-    print(f"⚠️  BLS router not loaded - error: {e}")
+if bls_router:
+    app.include_router(bls_router)
+    print("✅ Full BLS router included")
 
 
 @app.get("/")
@@ -114,34 +123,34 @@ async def debug_imports() -> Dict[str, Any]:
 
     try:
         from app.config import settings  # noqa: F401
-
         import_status["config"] = "✅ OK"
     except Exception as e:
         import_status["config"] = f"❌ Error: {e}"
 
     try:
         from app.bls_client import BLSAPIClient  # noqa: F401
-
         import_status["bls_client"] = "✅ OK"
     except Exception as e:
         import_status["bls_client"] = f"❌ Error: {e}"
 
     try:
         import httpx  # noqa: F401
-
         import_status["httpx"] = "✅ OK"
     except Exception as e:
         import_status["httpx"] = f"❌ Error: {e}"
 
     try:
         import tenacity  # noqa: F401
-
         import_status["tenacity"] = "✅ OK"
     except Exception as e:
         import_status["tenacity"] = f"❌ Error: {e}"
 
     return {
         "imports": import_status,
+        "routers_loaded": {
+            "simple_bls_router": simple_bls_router is not None,
+            "bls_router": bls_router is not None,
+        },
         "timestamp": datetime.now().isoformat(),
     }
 

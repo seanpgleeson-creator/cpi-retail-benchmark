@@ -37,10 +37,17 @@ app.add_middleware(
 
 # Include API routers
 app.include_router(simple_bls_router)  # Simple version for debugging
+
+# Try to include BLS router, but don't fail if dependencies are missing
 try:
+    # Test if httpx is available first
+    import httpx  # noqa: F401
     app.include_router(bls_router)  # Full version with error handling
+    print("✅ BLS router loaded successfully")
+except ImportError as e:
+    print(f"⚠️  BLS router not loaded - missing dependency: {e}")
 except Exception as e:
-    print(f"Warning: Could not load full BLS router: {e}")
+    print(f"⚠️  BLS router not loaded - error: {e}")
 
 
 @app.get("/")

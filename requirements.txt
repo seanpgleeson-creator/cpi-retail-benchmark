@@ -1,38 +1,30 @@
-aiofiles>=23.2.0,<24.0.0  # Async file operations
+# Core web framework
+fastapi>=0.104.0,<1.0.0
+uvicorn[standard]>=0.24.0,<1.0.0
+
+# HTTP client for BLS API
+httpx>=0.25.0,<1.0.0
+
+# Retry logic
+tenacity>=8.2.0,<9.0.0
+
+# Data validation
+pydantic>=2.5.0,<3.0.0
 
 # Database
+sqlalchemy>=2.0.0,<3.0.0
 alembic>=1.13.0,<2.0.0
-bandit>=1.7.0,<2.0.0
+
+# Async file operations
+aiofiles>=23.2.0,<24.0.0
+
+# Development dependencies (only install locally)
 black>=23.0.0,<24.0.0
-dateparser>=1.2.0,<2.0.0
-
-# Web Framework
-fastapi>=0.104.0,<1.0.0
 flake8>=6.0.0,<7.0.0
-httpx>=0.25.0,<1.0.0  # Alternative HTTP client
 mypy>=1.7.0,<2.0.0
-numpy>=1.24.0,<2.0.0
-
-# Data Processing
-pandas>=2.1.0,<3.0.0
-# Core Dependencies
-playwright>=1.40.0,<2.0.0
-pre-commit>=3.5.0,<4.0.0
-psycopg2-binary>=2.9.0,<3.0.0  # For PostgreSQL support
-pydantic>=2.5.0,<3.0.0
-pydantic-settings>=2.0.0,<3.0.0
-
-# Development Dependencies
 pytest>=7.4.0,<8.0.0
 pytest-asyncio>=0.21.0,<1.0.0
 pytest-cov>=4.1.0,<5.0.0
-python-dotenv>=1.0.0,<2.0.0
-pytz>=2023.3
-
-# Optional: For enhanced functionality
-redis>=5.0.0,<6.0.0  # For caching
-requests>=2.31.0,<3.0.0
+pre-commit>=3.5.0,<4.0.0
+bandit>=1.7.0,<2.0.0
 safety>=2.3.0,<3.0.0
-sqlalchemy>=2.0.0,<3.0.0
-tenacity>=8.2.0,<9.0.0
-uvicorn[standard]>=0.24.0,<1.0.0

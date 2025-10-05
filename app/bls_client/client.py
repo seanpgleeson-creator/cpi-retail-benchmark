@@ -8,7 +8,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Union
 
-import httpx
+import requests
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -72,14 +72,13 @@ class BLSAPIClient:
         self._daily_requests = 0
         self._last_reset = datetime.now().date()
 
-        # HTTP client configuration
-        self._client = httpx.AsyncClient(
-            timeout=httpx.Timeout(timeout),
-            headers={
-                "Content-Type": "application/json",
-                "User-Agent": "CPI-Retail-Benchmark/1.0",
-            },
-        )
+        # HTTP client configuration  
+        self._session = requests.Session()
+        self._session.headers.update({
+            "Content-Type": "application/json",
+            "User-Agent": "CPI-Retail-Benchmark/1.0",
+        })
+        self._session.timeout = timeout
 
     async def __aenter__(self) -> "BLSAPIClient":
         """Async context manager entry"""
@@ -87,7 +86,7 @@ class BLSAPIClient:
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Async context manager exit"""
-        await self._client.aclose()
+        self._session.close()
 
     def _check_rate_limits(self) -> None:
         """Check if we're within rate limits"""
@@ -156,11 +155,11 @@ class BLSAPIClient:
             )
 
     @retry(
-        retry=retry_if_exception_type((httpx.RequestError, BLSConnectionError)),
+        retry=retry_if_exception_type((requests.RequestException, BLSConnectionError)),
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=4, max=10),
     )
-    async def _make_request(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _make_request(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
         Make HTTP request to BLS API with retry logic
 
@@ -182,7 +181,7 @@ class BLSAPIClient:
                 f"Making BLS API request for {len(payload.get('seriesid', []))} series"
             )
 
-            response = await self._client.post(
+            response = self._session.post(
                 self.base_url,
                 json=payload,
             )
@@ -216,7 +215,7 @@ class BLSAPIClient:
             logger.info("BLS API request completed successfully")
             return data
 
-        except httpx.RequestError as e:
+        except requests.RequestException as e:
             logger.error(f"Connection error to BLS API: {e}")
             raise BLSConnectionError(f"Failed to connect to BLS API: {e}")
         except Exception as e:
@@ -274,10 +273,10 @@ class BLSAPIClient:
         if self.api_key:
             payload["registrationkey"] = self.api_key
 
-        result = await self._make_request(payload)
+        result = self._make_request(payload)
         return result  # type: ignore[no-any-return]
 
-    async def fetch_latest_data(
+    def fetch_latest_data(
         self, series_ids: Union[str, List[str]], months: int = 12
     ) -> Dict[str, Any]:
         """
@@ -293,14 +292,14 @@ class BLSAPIClient:
         current_year = datetime.now().year
         start_year = current_year - 1 if months > 12 else current_year
 
-        return await self.fetch_series_data(
+        return self.fetch_series_data(
             series_ids=series_ids,
             start_year=start_year,
             end_year=current_year,
             calculations=True,
         )
 
-    async def get_series_info(self, series_id: str) -> Dict[str, Any]:
+    def get_series_info(self, series_id: str) -> Dict[str, Any]:
         """
         Get information about a specific BLS series
 
@@ -310,7 +309,7 @@ class BLSAPIClient:
         Returns:
             Series metadata and recent data
         """
-        data = await self.fetch_latest_data([series_id], months=6)
+        data = self.fetch_latest_data([series_id], months=6)
 
         if not data.get("Results", {}).get("series"):
             raise BLSDataError(f"No data found for series {series_id}")
@@ -334,7 +333,7 @@ class BLSAPIClient:
             ),
         }
 
-    async def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> Dict[str, Any]:
         """
         Perform a health check on the BLS API
 
@@ -347,7 +346,7 @@ class BLSAPIClient:
             current_year = datetime.now().year
 
             start_time = datetime.now()
-            await self.fetch_series_data([test_series], current_year, current_year)
+            self.fetch_series_data([test_series], current_year, current_year)
             response_time = (datetime.now() - start_time).total_seconds()
 
             return {

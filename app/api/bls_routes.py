@@ -46,7 +46,7 @@ class SeriesInfoResponse(BaseModel):
 
 
 @router.get("/health")
-async def bls_health_check() -> Dict[str, Any]:
+def bls_health_check() -> Dict[str, Any]:
     """
     Check the health of the BLS API connection
     """

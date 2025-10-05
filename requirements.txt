@@ -19,7 +19,7 @@ alembic>=1.13.0,<2.0.0
 aiofiles>=23.2.0,<24.0.0
 
 # Development dependencies (only install locally)
-black>=23.0.0,<24.0.0
+black>=23.0.0,<26.0.0
 flake8>=6.0.0,<7.0.0
 mypy>=1.7.0,<2.0.0
 pytest>=7.4.0,<8.0.0

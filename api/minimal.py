@@ -61,3 +61,58 @@ async def test_imports() -> Dict[str, Any]:
         "imports": results,
         "timestamp": datetime.now().isoformat(),
     }
+
+
+@app.get("/diagnostic/step-1")
+async def diagnostic_step_1() -> Dict[str, Any]:
+    """Test basic Python imports"""
+    results = {}
+    
+    try:
+        from typing import Any, Dict  # noqa: F401
+        results["typing"] = "✅ OK"
+    except Exception as e:
+        results["typing"] = f"❌ {e}"
+    
+    try:
+        from datetime import datetime  # noqa: F401
+        results["datetime"] = "✅ OK"
+    except Exception as e:
+        results["datetime"] = f"❌ {e}"
+    
+    return {"step": 1, "basic_imports": results}
+
+
+@app.get("/diagnostic/step-3")
+async def diagnostic_step_3() -> Dict[str, Any]:
+    """Test our app module imports"""
+    results = {}
+    
+    try:
+        from app import __version__  # noqa: F401
+        results["app_version"] = f"✅ OK - {__version__}"
+    except Exception as e:
+        results["app_version"] = f"❌ {e}"
+    
+    try:
+        from app.config import settings  # noqa: F401
+        results["app_config"] = "✅ OK"
+        results["bls_api_key"] = settings.bls_api_key is not None
+    except Exception as e:
+        results["app_config"] = f"❌ {e}"
+    
+    return {"step": 3, "app_imports": results}
+
+
+@app.get("/diagnostic/step-4")
+async def diagnostic_step_4() -> Dict[str, Any]:
+    """Test BLS client imports"""
+    results = {}
+    
+    try:
+        from app.bls_client import BLSAPIClient  # noqa: F401
+        results["bls_client"] = "✅ OK"
+    except Exception as e:
+        results["bls_client"] = f"❌ {e}"
+    
+    return {"step": 4, "bls_imports": results}

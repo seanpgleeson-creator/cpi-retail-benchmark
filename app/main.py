@@ -155,6 +155,56 @@ async def debug_imports() -> Dict[str, Any]:
     }
 
 
+@app.get("/test-packages")
+async def test_packages() -> Dict[str, Any]:
+    """Test if ANY external packages work in Vercel"""
+    results = {}
+    
+    try:
+        import requests  # noqa: F401
+        results["requests"] = "✅ OK"
+    except Exception as e:
+        results["requests"] = f"❌ {e}"
+    
+    try:
+        import httpx  # noqa: F401
+        results["httpx"] = "✅ OK"
+    except Exception as e:
+        results["httpx"] = f"❌ {e}"
+    
+    try:
+        import sys
+        results["python_path"] = sys.path[:3]  # First 3 paths only
+        results["python_version"] = sys.version
+    except Exception as e:
+        results["python_info"] = f"❌ {e}"
+    
+    return {"package_test": results, "timestamp": datetime.now().isoformat()}
+
+
+@app.get("/debug/app-status")
+async def app_status() -> Dict[str, Any]:
+    """Show which app is actually running"""
+    return {
+        "app_type": "main_app",
+        "title": app.title,
+        "routers_loaded": {
+            "simple_bls_router": simple_bls_router is not None,
+            "bls_router": bls_router is not None,
+        },
+        "available_endpoints": [
+            "/",
+            "/health", 
+            "/test-packages",
+            "/debug/imports",
+            "/debug/app-status",
+            "/api/v1/status",
+            "/api/v1/config"
+        ],
+        "timestamp": datetime.now().isoformat(),
+    }
+
+
 # Error handlers
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc: Exception) -> JSONResponse:

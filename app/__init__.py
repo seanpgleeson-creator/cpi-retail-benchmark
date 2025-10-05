@@ -10,6 +10,7 @@ __version__ = "0.1.0"
 __author__ = "CPI Benchmark Team"
 __email__ = "team@cpi-benchmark.com"
 
-from app.config import settings
+# Removed automatic settings import to avoid initialization issues
+# Import settings when needed: from app.config import settings
 
-__all__ = ["settings"]
+__all__ = ["__version__"]

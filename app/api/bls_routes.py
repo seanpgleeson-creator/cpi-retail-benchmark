@@ -66,7 +66,7 @@ def bls_health_check() -> Dict[str, Any]:
 
 
 @router.get("/series/{series_id}/info")
-async def get_series_info(series_id: str) -> SeriesInfoResponse:
+def get_series_info(series_id: str) -> SeriesInfoResponse:
     """
     Get information about a specific BLS series
 
@@ -74,8 +74,8 @@ async def get_series_info(series_id: str) -> SeriesInfoResponse:
         series_id: BLS series identifier (e.g., CUUR0000SEFJ01 for milk CPI)
     """
     try:
-        async with BLSAPIClient() as client:
-            info = await client.get_series_info(series_id)
+        client = BLSAPIClient(api_key=settings.bls_api_key)
+        info = client.get_series_info(series_id)
         return SeriesInfoResponse(**info)
     except BLSAPIError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -86,7 +86,7 @@ async def get_series_info(series_id: str) -> SeriesInfoResponse:
 
 
 @router.get("/series/{series_id}/latest")
-async def get_latest_data(
+def get_latest_data(
     series_id: str,
     months: int = Query(12, ge=1, le=60, description="Number of recent months"),
 ) -> Dict[str, Any]:
@@ -98,8 +98,8 @@ async def get_latest_data(
         months: Number of recent months to fetch (1-60)
     """
     try:
-        async with BLSAPIClient() as client:
-            data = await client.fetch_latest_data([series_id], months=months)
+        client = BLSAPIClient(api_key=settings.bls_api_key)
+        data = client.fetch_latest_data([series_id], months=months)
         return data
     except BLSAPIError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -110,21 +110,21 @@ async def get_latest_data(
 
 
 @router.post("/series/data")
-async def fetch_series_data(request: SeriesRequest) -> Dict[str, Any]:
+def fetch_series_data(request: SeriesRequest) -> Dict[str, Any]:
     """
     Fetch time series data from BLS API
 
     This endpoint allows you to fetch historical data for one or more BLS series.
     """
     try:
-        async with BLSAPIClient() as client:
-            data = await client.fetch_series_data(
-                series_ids=request.series_ids,
-                start_year=request.start_year,
-                end_year=request.end_year,
-                calculations=request.calculations,
-                annual_averages=request.annual_averages,
-            )
+        client = BLSAPIClient(api_key=settings.bls_api_key)
+        data = client.fetch_series_data(
+            series_ids=request.series_ids,
+            start_year=request.start_year,
+            end_year=request.end_year,
+            calculations=request.calculations,
+            annual_averages=request.annual_averages,
+        )
         return data
     except BLSAPIError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -135,7 +135,7 @@ async def fetch_series_data(request: SeriesRequest) -> Dict[str, Any]:
 
 
 @router.get("/series/popular")
-async def get_popular_series() -> Dict[str, Any]:
+def get_popular_series() -> Dict[str, Any]:
     """
     Get information about popular CPI series relevant to retail price tracking
     """
@@ -192,7 +192,7 @@ async def get_popular_series() -> Dict[str, Any]:
 
 
 @router.get("/config")
-async def get_bls_config() -> Dict[str, Any]:
+def get_bls_config() -> Dict[str, Any]:
     """
     Get BLS API configuration information
     """

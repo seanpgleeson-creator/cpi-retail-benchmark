@@ -9,5 +9,6 @@ rebased indices, and data quality validation.
 from .calculations import BLSCalculator
 from .processors import BLSDataProcessor
 from .validators import BLSDataValidator
+from .storage import BLSStorageProcessor
 
-__all__ = ["BLSCalculator", "BLSDataProcessor", "BLSDataValidator"]
+__all__ = ["BLSCalculator", "BLSDataProcessor", "BLSDataValidator", "BLSStorageProcessor"]

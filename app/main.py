@@ -16,6 +16,7 @@ from app.config import settings
 bls_router = None
 simple_bls_router = None
 processing_router = None
+storage_router = None
 
 try:
     from app.api.simple_bls import router as simple_bls_router
@@ -37,6 +38,13 @@ try:
     print("✅ Processing router loaded")
 except Exception as e:
     print(f"⚠️ Processing router failed: {e}")
+
+try:
+    from app.api.storage_routes import router as storage_router
+
+    print("✅ Storage router loaded")
+except Exception as e:
+    print(f"⚠️ Storage router failed: {e}")
 
 # Create FastAPI application
 app = FastAPI(
@@ -71,6 +79,18 @@ if bls_router:
 if processing_router:
     app.include_router(processing_router)
     print("✅ Processing router included")
+
+if storage_router:
+    app.include_router(storage_router)
+    print("✅ Storage router included")
+
+# Initialize database on startup
+try:
+    from app.db import init_db
+    init_db()
+    print("✅ Database initialized")
+except Exception as e:
+    print(f"⚠️ Database initialization failed: {e}")
 
 
 @app.get("/")
@@ -169,6 +189,7 @@ async def debug_imports() -> Dict[str, Any]:
                 "simple_bls_router": simple_bls_router is not None,
                 "bls_router": bls_router is not None,
                 "processing_router": processing_router is not None,
+                "storage_router": storage_router is not None,
             },
             "timestamp": datetime.now().isoformat(),
         }
@@ -214,6 +235,7 @@ async def app_status() -> Dict[str, Any]:
             "simple_bls_router": simple_bls_router is not None,
             "bls_router": bls_router is not None,
             "processing_router": processing_router is not None,
+            "storage_router": storage_router is not None,
         },
         "available_endpoints": [
             "/",
@@ -224,6 +246,7 @@ async def app_status() -> Dict[str, Any]:
             "/api/v1/status",
             "/api/v1/config",
             "/api/v1/processing/health",
+            "/api/v1/storage/health",
             "/docs",
         ],
         "timestamp": datetime.now().isoformat(),

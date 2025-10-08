@@ -2,6 +2,7 @@
 Configuration settings for the CPI Retail Benchmark Platform
 """
 
+import os
 from typing import List, Optional
 
 # Removed pydantic imports to avoid pydantic-settings dependency issues
@@ -12,7 +13,7 @@ class Settings:
 
     def __init__(self) -> None:
         # BLS API Configuration
-        self.bls_api_key: Optional[str] = None
+        self.bls_api_key: Optional[str] = os.getenv("BLS_API_KEY")
         self.bls_base_url: str = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
         self.default_bls_series: List[str] = ["CUUR0000SEFJ01", "APU0000709112"]
 
@@ -27,6 +28,11 @@ class Settings:
         self.user_agent_rotation: bool = True
         self.requests_per_second: float = 0.5
         self.max_retries: int = 3
+        
+        # Browserless Configuration
+        self.browserless_api_key: Optional[str] = os.getenv("BROWSERLESS_API_KEY", "2TCJhd8NICSxt8Df0e09b3535444b8f634b8fac10eb5e47a7")
+        self.browserless_endpoint: str = os.getenv("BROWSERLESS_ENDPOINT", "wss://chrome.browserless.io")
+        self.use_browserless: bool = os.getenv("USE_BROWSERLESS", "true").lower() == "true"
 
         # Logging Configuration
         self.log_level: str = "INFO"

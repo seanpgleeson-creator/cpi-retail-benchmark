@@ -498,6 +498,8 @@ def get_scraper_config() -> Dict[str, Any]:
     """
     Get scraper configuration and capabilities
     """
+    from app.config import settings
+    
     return {
         "supported_retailers": ["target"],
         "supported_categories": [category.value for category in ProductCategory],
@@ -507,7 +509,13 @@ def get_scraper_config() -> Dict[str, Any]:
             "price_normalization": True,
             "database_storage": True,
             "rate_limiting": True,
-            "anti_detection": True
+            "anti_detection": True,
+            "browserless_support": True
+        },
+        "browserless": {
+            "enabled": settings.use_browserless,
+            "configured": settings.browserless_api_key is not None,
+            "endpoint": settings.browserless_endpoint if settings.browserless_api_key else "Not configured"
         },
         "rate_limits": {
             "requests_per_second": 0.5,
@@ -520,4 +528,32 @@ def get_scraper_config() -> Dict[str, Any]:
             "max_pages_per_search": 3,
             "max_results_per_retailer": 50
         }
+    }
+
+
+@router.get("/browserless/status")
+def get_browserless_status() -> Dict[str, Any]:
+    """
+    Get Browserless integration status
+    """
+    from app.config import settings
+    
+    return {
+        "browserless_enabled": settings.use_browserless,
+        "api_key_configured": settings.browserless_api_key is not None,
+        "endpoint": settings.browserless_endpoint,
+        "status": "configured" if settings.browserless_api_key else "not_configured",
+        "benefits": [
+            "Production-ready browser instances",
+            "No local browser dependencies",
+            "Better performance in serverless environments",
+            "Managed anti-detection measures",
+            "Scalable concurrent sessions"
+        ],
+        "setup_instructions": {
+            "step_1": "Sign up for Browserless account at browserless.io",
+            "step_2": "Get your API key from the dashboard",
+            "step_3": "Set BROWSERLESS_API_KEY environment variable",
+            "step_4": "Restart the application"
+        } if not settings.browserless_api_key else None
     }

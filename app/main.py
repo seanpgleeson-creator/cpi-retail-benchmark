@@ -113,6 +113,31 @@ except Exception as e:
     print(f"⚠️ Database initialization failed: {e}")
 
 
+# Add a startup event to ensure everything is working
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup"""
+    print("🚀 CPI Retail Benchmark Platform starting up...")
+    
+    # Test database connection
+    try:
+        from app.db.database import SessionLocal
+        db = SessionLocal()
+        db.close()
+        print("✅ Database connection verified")
+    except Exception as e:
+        print(f"⚠️ Database connection failed: {e}")
+    
+    # Test Browserless configuration
+    from app.config import settings
+    if settings.browserless_api_key:
+        print(f"✅ Browserless configured: {settings.browserless_endpoint}")
+    else:
+        print("⚠️ Browserless not configured")
+    
+    print("🎉 Startup complete!")
+
+
 @app.get("/")
 async def root():
     """Serve the main dashboard"""
@@ -292,6 +317,17 @@ async def app_status() -> Dict[str, Any]:
             "/docs",
         ],
         "timestamp": datetime.now().isoformat(),
+    }
+
+
+@app.get("/api/test")
+async def api_test() -> Dict[str, Any]:
+    """Simple API test endpoint"""
+    return {
+        "status": "success",
+        "message": "API is working!",
+        "timestamp": datetime.now().isoformat(),
+        "browserless_configured": settings.browserless_api_key is not None,
     }
 
 

@@ -59,15 +59,21 @@ function setupEventListeners() {
 // Load dashboard data
 async function loadDashboardData() {
     try {
-        showLoading();
+        showLoading('Loading dashboard data...');
         
-        // Load all service statuses in parallel
-        const [blsStatus, storageStatus, scrapersStatus, processingStatus] = await Promise.allSettled([
-            fetchAPI('/api/v1/bls/health'),
-            fetchAPI('/api/v1/storage/stats'),
-            fetchAPI('/api/v1/scrapers/health'),
-            fetchAPI('/api/v1/processing/health')
-        ]);
+        console.log('Starting to load dashboard data...');
+        
+        // Load all service statuses in parallel with better error handling
+        const statusPromises = [
+            fetchAPI('/api/v1/bls/health').catch(e => ({ status: 'rejected', reason: e })),
+            fetchAPI('/api/v1/storage/stats').catch(e => ({ status: 'rejected', reason: e })),
+            fetchAPI('/api/v1/scrapers/health').catch(e => ({ status: 'rejected', reason: e })),
+            fetchAPI('/api/v1/processing/health').catch(e => ({ status: 'rejected', reason: e }))
+        ];
+        
+        const [blsStatus, storageStatus, scrapersStatus, processingStatus] = await Promise.allSettled(statusPromises);
+        
+        console.log('API responses:', { blsStatus, storageStatus, scrapersStatus, processingStatus });
         
         // Update status cards
         updateStatusCard('bls-status', blsStatus);
@@ -79,10 +85,21 @@ async function loadDashboardData() {
         
     } catch (error) {
         console.error('Error loading dashboard data:', error);
-        updateActivity('Error loading dashboard data', 'error');
+        updateActivity('Error loading dashboard data: ' + error.message, 'error');
+        
+        // Set fallback status for all cards
+        setFallbackStatus();
     } finally {
         hideLoading();
     }
+}
+
+// Set fallback status when API calls fail
+function setFallbackStatus() {
+    document.getElementById('bls-status').textContent = 'Unknown';
+    document.getElementById('storage-status').textContent = 'Unknown';
+    document.getElementById('scrapers-status').textContent = 'Unknown';
+    document.getElementById('processing-status').textContent = 'Unknown';
 }
 
 // Load section-specific data
@@ -143,27 +160,60 @@ async function loadAPIData() {
 // Update status card
 function updateStatusCard(elementId, statusResult) {
     const element = document.getElementById(elementId);
-    if (!element) return;
+    if (!element) {
+        console.warn(`Element not found: ${elementId}`);
+        return;
+    }
+    
+    console.log(`Updating status card ${elementId}:`, statusResult);
     
     if (statusResult.status === 'fulfilled') {
         const data = statusResult.value;
         
+        // Handle case where data itself might be an error response
+        if (data && data.status === 'rejected') {
+            element.textContent = 'Error';
+            console.error(`API error for ${elementId}:`, data.reason);
+            return;
+        }
+        
         switch (elementId) {
             case 'bls-status':
-                element.textContent = data.status === 'healthy' ? 'Healthy' : 'Error';
+                if (data && data.status) {
+                    element.textContent = data.status === 'healthy' ? 'Healthy' : 'Error';
+                } else {
+                    element.textContent = 'Ready';
+                }
                 break;
             case 'storage-status':
-                element.textContent = data.total_series ? `${data.total_series} Series` : 'Ready';
+                if (data && typeof data.total_series === 'number') {
+                    element.textContent = `${data.total_series} Series`;
+                } else {
+                    element.textContent = 'Ready';
+                }
                 break;
             case 'scrapers-status':
-                element.textContent = data.healthy_scrapers ? `${data.healthy_scrapers}/${data.total_scrapers}` : 'Ready';
+                if (data && data.healthy_scrapers && data.total_scrapers) {
+                    element.textContent = `${data.healthy_scrapers}/${data.total_scrapers}`;
+                } else if (data && data.status === 'healthy') {
+                    element.textContent = 'Ready';
+                } else {
+                    element.textContent = 'Ready';
+                }
                 break;
             case 'processing-status':
-                element.textContent = data.status === 'healthy' ? 'Ready' : 'Error';
+                if (data && data.status) {
+                    element.textContent = data.status === 'healthy' ? 'Ready' : 'Error';
+                } else {
+                    element.textContent = 'Ready';
+                }
                 break;
+            default:
+                element.textContent = 'Ready';
         }
     } else {
         element.textContent = 'Error';
+        console.error(`Status result error for ${elementId}:`, statusResult.reason);
     }
 }
 
@@ -659,19 +709,34 @@ function displayAPIResponse(endpoint, status, data) {
 // Utility functions
 async function fetchAPI(endpoint, options = {}) {
     const url = apiBaseUrl + endpoint;
-    const response = await fetch(url, {
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        },
-        ...options
-    });
     
-    if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    console.log(`Fetching: ${url}`);
+    
+    try {
+        const response = await fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                ...options.headers
+            },
+            ...options
+        });
+        
+        console.log(`Response for ${endpoint}:`, response.status, response.statusText);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`API Error for ${endpoint}:`, errorText);
+            throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log(`Data for ${endpoint}:`, data);
+        return data;
+        
+    } catch (error) {
+        console.error(`Fetch error for ${endpoint}:`, error);
+        throw error;
     }
-    
-    return await response.json();
 }
 
 function showLoading(message = 'Loading...') {

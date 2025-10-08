@@ -9,6 +9,7 @@ from typing import Dict, List, Optional, Type, Union
 
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.db import get_db_session, BLSDataManager
 from app.db.models import RetailerDB, RetailerProductDB, RetailerPriceDB
 from .base import BaseScraper, ScrapingResult, ProductInfo, ProductCategory
@@ -85,6 +86,9 @@ class ScraperManager:
                 "zip_code": self.default_zip_code,
                 "headless": True,
                 "max_pages": 3,
+                "use_browserless": settings.use_browserless,
+                "browserless_api_key": settings.browserless_api_key,
+                "browserless_endpoint": settings.browserless_endpoint,
             }
             config.update(kwargs)
             

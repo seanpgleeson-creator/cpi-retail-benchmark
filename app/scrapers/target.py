@@ -10,6 +10,7 @@ from urllib.parse import urljoin, quote
 
 from playwright.async_api import async_playwright, Browser, Page, TimeoutError as PlaywrightTimeoutError
 
+from app.config import settings
 from .base import BaseScraper, ScrapingResult, ProductInfo, ProductCategory
 
 logger = logging.getLogger(__name__)
@@ -36,6 +37,11 @@ class TargetScraper(BaseScraper):
         self._browser = None
         self._page = None
         
+        # Browserless configuration
+        self.use_browserless = kwargs.get('use_browserless', settings.use_browserless)
+        self.browserless_api_key = kwargs.get('browserless_api_key', settings.browserless_api_key)
+        self.browserless_endpoint = kwargs.get('browserless_endpoint', settings.browserless_endpoint)
+        
         # User agents for rotation
         self.user_agents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -46,14 +52,79 @@ class TargetScraper(BaseScraper):
     
     async def setup_session(self) -> bool:
         """
-        Setup Playwright browser session
+        Setup browser session (Browserless or local Playwright)
         
         Returns:
             True if setup successful, False otherwise
         """
         try:
-            logger.info("Setting up Target scraper session")
+            if self.use_browserless and self.browserless_api_key:
+                logger.info("Setting up Target scraper session with Browserless")
+                return await self._setup_browserless_session()
+            else:
+                logger.info("Setting up Target scraper session with local Playwright")
+                return await self._setup_local_session()
             
+        except Exception as e:
+            logger.error(f"Failed to setup Target scraper session: {e}")
+            await self.cleanup_session()
+            return False
+    
+    async def _setup_browserless_session(self) -> bool:
+        """
+        Setup session using Browserless service
+        
+        Returns:
+            True if setup successful, False otherwise
+        """
+        try:
+            # Launch Playwright
+            self._playwright = await async_playwright().start()
+            
+            # Connect to Browserless
+            browserless_url = f"{self.browserless_endpoint}?token={self.browserless_api_key}"
+            
+            self._browser = await self._playwright.chromium.connect_over_cdp(browserless_url)
+            
+            # Create page with random user agent
+            user_agent = random.choice(self.user_agents) if self.user_agent_rotation else self.user_agents[0]
+            
+            self._page = await self._browser.new_page(
+                user_agent=user_agent,
+                viewport={'width': 1920, 'height': 1080}
+            )
+            
+            # Set additional headers to appear more human-like
+            await self._page.set_extra_http_headers({
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+            })
+            
+            # Navigate to Target homepage to establish session
+            await self._page.goto(self.base_url, wait_until='networkidle', timeout=30000)
+            
+            # Set location if zip code is provided
+            if self.zip_code:
+                await self._set_location(self.zip_code)
+            
+            logger.info("Target scraper Browserless session setup complete")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to setup Browserless session: {e}")
+            return False
+    
+    async def _setup_local_session(self) -> bool:
+        """
+        Setup session using local Playwright
+        
+        Returns:
+            True if setup successful, False otherwise
+        """
+        try:
             # Launch Playwright
             self._playwright = await async_playwright().start()
             
@@ -92,12 +163,11 @@ class TargetScraper(BaseScraper):
             if self.zip_code:
                 await self._set_location(self.zip_code)
             
-            logger.info("Target scraper session setup complete")
+            logger.info("Target scraper local session setup complete")
             return True
             
         except Exception as e:
-            logger.error(f"Failed to setup Target scraper session: {e}")
-            await self.cleanup_session()
+            logger.error(f"Failed to setup local session: {e}")
             return False
     
     async def cleanup_session(self) -> None:

@@ -17,6 +17,7 @@ bls_router = None
 simple_bls_router = None
 processing_router = None
 storage_router = None
+scraper_router = None
 
 try:
     from app.api.simple_bls import router as simple_bls_router
@@ -45,6 +46,13 @@ try:
     print("✅ Storage router loaded")
 except Exception as e:
     print(f"⚠️ Storage router failed: {e}")
+
+try:
+    from app.api.scraper_routes import router as scraper_router
+
+    print("✅ Scraper router loaded")
+except Exception as e:
+    print(f"⚠️ Scraper router failed: {e}")
 
 # Create FastAPI application
 app = FastAPI(
@@ -83,6 +91,10 @@ if processing_router:
 if storage_router:
     app.include_router(storage_router)
     print("✅ Storage router included")
+
+if scraper_router:
+    app.include_router(scraper_router)
+    print("✅ Scraper router included")
 
 # Initialize database on startup
 try:
@@ -190,6 +202,7 @@ async def debug_imports() -> Dict[str, Any]:
                 "bls_router": bls_router is not None,
                 "processing_router": processing_router is not None,
                 "storage_router": storage_router is not None,
+                "scraper_router": scraper_router is not None,
             },
             "timestamp": datetime.now().isoformat(),
         }
@@ -236,6 +249,7 @@ async def app_status() -> Dict[str, Any]:
             "bls_router": bls_router is not None,
             "processing_router": processing_router is not None,
             "storage_router": storage_router is not None,
+            "scraper_router": scraper_router is not None,
         },
         "available_endpoints": [
             "/",
@@ -247,6 +261,7 @@ async def app_status() -> Dict[str, Any]:
             "/api/v1/config",
             "/api/v1/processing/health",
             "/api/v1/storage/health",
+            "/api/v1/scrapers/health",
             "/docs",
         ],
         "timestamp": datetime.now().isoformat(),

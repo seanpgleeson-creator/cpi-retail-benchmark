@@ -4,3 +4,6 @@ requests==2.31.0
 tenacity==8.2.3
 sqlalchemy==2.0.23
 alembic==1.13.1
+playwright==1.40.0
+beautifulsoup4==4.12.2
+lxml==4.9.3

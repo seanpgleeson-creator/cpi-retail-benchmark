@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPI Retail Benchmark Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    <h1>CPI Retail Benchmark</h1>
+                </div>
+                <nav class="nav">
+                    <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a href="#compare" class="nav-link" data-section="compare">
+                        <i class="fas fa-balance-scale"></i> Compare
+                    </a>
+                    <a href="#scrape" class="nav-link" data-section="scrape">
+                        <i class="fas fa-spider"></i> Scrape
+                    </a>
+                    <a href="#api" class="nav-link" data-section="api">
+                        <i class="fas fa-code"></i> API
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <div class="section-header">
+                    <h2><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h2>
+                    <p>Real-time retail price tracking vs government inflation data</p>
+                </div>
+
+                <!-- Status Cards -->
+                <div class="status-grid">
+                    <div class="status-card">
+                        <div class="status-icon bls">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="status-content">
+                            <h3>BLS Data</h3>
+                            <div class="status-value" id="bls-status">Loading...</div>
+                            <div class="status-label">API Status</div>
+                        </div>
+                    </div>
+
+                    <div class="status-card">
+                        <div class="status-icon storage">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="status-content">
+                            <h3>Database</h3>
+                            <div class="status-value" id="storage-status">Loading...</div>
+                            <div class="status-label">Series Stored</div>
+                        </div>
+                    </div>
+
+                    <div class="status-card">
+                        <div class="status-icon scrapers">
+                            <i class="fas fa-spider"></i>
+                        </div>
+                        <div class="status-content">
+                            <h3>Scrapers</h3>
+                            <div class="status-value" id="scrapers-status">Loading...</div>
+                            <div class="status-label">Retailers Active</div>
+                        </div>
+                    </div>
+
+                    <div class="status-card">
+                        <div class="status-icon processing">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <div class="status-content">
+                            <h3>Processing</h3>
+                            <div class="status-value" id="processing-status">Loading...</div>
+                            <div class="status-label">Analytics Ready</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                    <div class="action-grid">
+                        <button class="action-btn" onclick="quickScrape('milk')">
+                            <i class="fas fa-glass-whiskey"></i>
+                            <span>Scrape Milk Prices</span>
+                        </button>
+                        <button class="action-btn" onclick="quickBLS('CUUR0000SEFJ01')">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Get BLS Milk Data</span>
+                        </button>
+                        <button class="action-btn" onclick="showComparison()">
+                            <i class="fas fa-balance-scale"></i>
+                            <span>Compare Prices</span>
+                        </button>
+                        <button class="action-btn" onclick="viewAPI()">
+                            <i class="fas fa-code"></i>
+                            <span>API Documentation</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="recent-activity">
+                    <h3><i class="fas fa-clock"></i> Recent Activity</h3>
+                    <div class="activity-list" id="activity-list">
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">Dashboard Loaded</div>
+                                <div class="activity-time">Just now</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Compare Section -->
+            <section id="compare" class="section">
+                <div class="section-header">
+                    <h2><i class="fas fa-balance-scale"></i> Price Comparison</h2>
+                    <p>Compare retail prices with BLS Consumer Price Index data</p>
+                </div>
+
+                <!-- Comparison Controls -->
+                <div class="comparison-controls">
+                    <div class="control-group">
+                        <label for="category-select">Product Category</label>
+                        <select id="category-select" class="form-select">
+                            <option value="">Select Category...</option>
+                            <option value="milk">Milk & Dairy</option>
+                            <option value="bread">Bread & Bakery</option>
+                            <option value="eggs">Eggs</option>
+                            <option value="chicken">Chicken & Poultry</option>
+                            <option value="ground_beef">Ground Beef</option>
+                            <option value="coffee">Coffee</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="retailer-select">Retailers</label>
+                        <div class="checkbox-group" id="retailer-checkboxes">
+                            <label class="checkbox-label">
+                                <input type="checkbox" value="target" checked>
+                                <span class="checkmark"></span>
+                                Target
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="zip-code">ZIP Code</label>
+                        <input type="text" id="zip-code" class="form-input" value="55331" placeholder="Enter ZIP code">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="runComparison()">
+                        <i class="fas fa-play"></i> Run Comparison
+                    </button>
+                </div>
+
+                <!-- Comparison Results -->
+                <div class="comparison-results" id="comparison-results" style="display: none;">
+                    <div class="results-header">
+                        <h3>Comparison Results</h3>
+                        <div class="results-meta" id="results-meta"></div>
+                    </div>
+
+                    <!-- Price Chart -->
+                    <div class="chart-container">
+                        <canvas id="price-chart"></canvas>
+                    </div>
+
+                    <!-- Results Table -->
+                    <div class="results-table-container">
+                        <table class="results-table" id="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Retailer</th>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Size/Unit</th>
+                                    <th>Normalized Price</th>
+                                    <th>vs BLS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="results-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Scrape Section -->
+            <section id="scrape" class="section">
+                <div class="section-header">
+                    <h2><i class="fas fa-spider"></i> Retail Price Scraping</h2>
+                    <p>Scrape current prices from retail websites</p>
+                </div>
+
+                <!-- Scraping Controls -->
+                <div class="scraping-controls">
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label for="scrape-query">Search Query</label>
+                            <input type="text" id="scrape-query" class="form-input" placeholder="e.g., milk, bread, eggs">
+                        </div>
+
+                        <div class="control-group">
+                            <label for="scrape-category">Category (Optional)</label>
+                            <select id="scrape-category" class="form-select">
+                                <option value="">Auto-detect</option>
+                                <option value="milk">Milk</option>
+                                <option value="bread">Bread</option>
+                                <option value="eggs">Eggs</option>
+                                <option value="chicken">Chicken</option>
+                                <option value="ground_beef">Ground Beef</option>
+                                <option value="coffee">Coffee</option>
+                            </select>
+                        </div>
+
+                        <div class="control-group">
+                            <label for="max-results">Max Results</label>
+                            <input type="number" id="max-results" class="form-input" value="10" min="1" max="50">
+                        </div>
+                    </div>
+
+                    <div class="control-row">
+                        <button class="btn btn-primary" onclick="startScraping()">
+                            <i class="fas fa-play"></i> Start Scraping
+                        </button>
+                        <button class="btn btn-secondary" onclick="scrapeMilkDemo()">
+                            <i class="fas fa-glass-whiskey"></i> Demo: Milk Prices
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Scraping Results -->
+                <div class="scraping-results" id="scraping-results" style="display: none;">
+                    <div class="results-header">
+                        <h3>Scraping Results</h3>
+                        <div class="scraping-meta" id="scraping-meta"></div>
+                    </div>
+
+                    <div class="scraped-products" id="scraped-products"></div>
+                </div>
+
+                <!-- Scraping Status -->
+                <div class="scraping-status" id="scraping-status" style="display: none;">
+                    <div class="status-content">
+                        <div class="spinner"></div>
+                        <div class="status-text">Scraping in progress...</div>
+                        <div class="status-details" id="scraping-details"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- API Section -->
+            <section id="api" class="section">
+                <div class="section-header">
+                    <h2><i class="fas fa-code"></i> API Documentation</h2>
+                    <p>Explore and test the CPI Retail Benchmark API</p>
+                </div>
+
+                <!-- API Endpoints -->
+                <div class="api-endpoints">
+                    <div class="endpoint-category">
+                        <h3><i class="fas fa-chart-bar"></i> BLS Data API</h3>
+                        <div class="endpoint-list">
+                            <div class="endpoint-item">
+                                <div class="endpoint-method get">GET</div>
+                                <div class="endpoint-path">/api/v1/bls/health</div>
+                                <div class="endpoint-description">Check BLS API health</div>
+                                <button class="btn btn-sm" onclick="testEndpoint('/api/v1/bls/health')">Test</button>
+                            </div>
+                            <div class="endpoint-item">
+                                <div class="endpoint-method get">GET</div>
+                                <div class="endpoint-path">/api/v1/bls/series/popular</div>
+                                <div class="endpoint-description">Get popular BLS series</div>
+                                <button class="btn btn-sm" onclick="testEndpoint('/api/v1/bls/series/popular')">Test</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="endpoint-category">
+                        <h3><i class="fas fa-cogs"></i> Data Processing API</h3>
+                        <div class="endpoint-list">
+                            <div class="endpoint-item">
+                                <div class="endpoint-method get">GET</div>
+                                <div class="endpoint-path">/api/v1/processing/health</div>
+                                <div class="endpoint-description">Check processing service health</div>
+                                <button class="btn btn-sm" onclick="testEndpoint('/api/v1/processing/health')">Test</button>
+                            </div>
+                            <div class="endpoint-item">
+                                <div class="endpoint-method get">GET</div>
+                                <div class="endpoint-path">/api/v1/processing/calculations/demo</div>
+                                <div class="endpoint-description">Demo calculation capabilities</div>
+                                <button class="btn btn-sm" onclick="testEndpoint('/api/v1/processing/calculations/demo')">Test</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="endpoint-category">
+                        <h3><i class="fas fa-database"></i> Storage API</h3>
+                        <div class="endpoint-list">
+                            <div class="endpoint-item">
+                                <div class="endpoint-method get">GET</div>
+                                <div class="endpoint-path">/api/v1/storage/stats</div>
+                                <div class="endpoint-description">Get database statistics</div>
+                                <button class="btn btn-sm" onclick="testEndpoint('/api/v1/storage/stats')">Test</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="endpoint-category">
+                        <h3><i class="fas fa-spider"></i> Scraping API</h3>
+                        <div class="endpoint-list">
+                            <div class="endpoint-item">
+                                <div class="endpoint-method get">GET</div>
+                                <div class="endpoint-path">/api/v1/scrapers/health</div>
+                                <div class="endpoint-description">Check scraper health</div>
+                                <button class="btn btn-sm" onclick="testEndpoint('/api/v1/scrapers/health')">Test</button>
+                            </div>
+                            <div class="endpoint-item">
+                                <div class="endpoint-method get">GET</div>
+                                <div class="endpoint-path">/api/v1/scrapers/demo/milk</div>
+                                <div class="endpoint-description">Demo milk price scraping</div>
+                                <button class="btn btn-sm" onclick="testEndpoint('/api/v1/scrapers/demo/milk')">Test</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Response -->
+                <div class="api-response" id="api-response" style="display: none;">
+                    <h3>API Response</h3>
+                    <div class="response-header" id="response-header"></div>
+                    <pre class="response-body" id="response-body"></pre>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>CPI Retail Benchmark Platform</h4>
+                    <p>Real-time retail price tracking vs government inflation data</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Features</h4>
+                    <ul>
+                        <li>BLS Data Integration</li>
+                        <li>Multi-Retailer Scraping</li>
+                        <li>Price Comparison Analytics</li>
+                        <li>Real-time Dashboard</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>API</h4>
+                    <ul>
+                        <li><a href="/docs">Interactive Documentation</a></li>
+                        <li><a href="/redoc">ReDoc Documentation</a></li>
+                        <li><a href="/api/v1/status">API Status</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 CPI Retail Benchmark Platform. Built with FastAPI, Playwright, and modern web technologies.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner large"></div>
+            <div class="loading-text">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>

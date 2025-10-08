@@ -8,6 +8,7 @@ from typing import Any, Dict
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app import __version__
 from app.config import settings
@@ -96,6 +97,13 @@ if scraper_router:
     app.include_router(scraper_router)
     print("✅ Scraper router included")
 
+# Mount static files for frontend
+try:
+    app.mount("/static", StaticFiles(directory="frontend"), name="static")
+    print("✅ Frontend static files mounted")
+except Exception as e:
+    print(f"⚠️ Could not mount static files: {e}")
+
 # Initialize database on startup
 try:
     from app.db import init_db
@@ -106,8 +114,27 @@ except Exception as e:
 
 
 @app.get("/")
-async def root() -> Dict[str, Any]:
-    """Root endpoint with basic application information"""
+async def root():
+    """Serve the main dashboard"""
+    try:
+        from fastapi.responses import FileResponse
+        return FileResponse("frontend/index.html")
+    except Exception:
+        # Fallback to API info if frontend not available
+        return {
+            "name": "CPI Retail Benchmark Platform",
+            "version": __version__,
+            "description": "Multi-Retailer CPI Price Benchmark Platform",
+            "status": "healthy",
+            "environment": settings.environment,
+            "dashboard": "/static/index.html",
+            "docs": "/docs",
+            "redoc": "/redoc",
+        }
+
+@app.get("/api")
+async def api_root() -> Dict[str, Any]:
+    """API root endpoint with basic application information"""
     return {
         "name": "CPI Retail Benchmark Platform",
         "version": __version__,

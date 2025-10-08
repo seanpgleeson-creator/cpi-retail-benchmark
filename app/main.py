@@ -19,6 +19,7 @@ simple_bls_router = None
 processing_router = None
 storage_router = None
 scraper_router = None
+simple_health_router = None
 
 try:
     from app.api.simple_bls import router as simple_bls_router
@@ -33,6 +34,13 @@ try:
     print("✅ Full BLS router loaded")
 except Exception as e:
     print(f"⚠️ Full BLS router failed: {e}")
+
+try:
+    from app.api.simple_health import router as simple_health_router
+
+    print("✅ Simple health router loaded")
+except Exception as e:
+    print(f"⚠️ Simple health router failed: {e}")
 
 try:
     from app.api.processing_routes import router as processing_router
@@ -84,6 +92,11 @@ if simple_bls_router:
 if bls_router:
     app.include_router(bls_router)
     print("✅ Full BLS router included")
+
+# Always include simple health router as fallback
+if simple_health_router:
+    app.include_router(simple_health_router)
+    print("✅ Simple health router included")
 
 if processing_router:
     app.include_router(processing_router)
@@ -299,6 +312,7 @@ async def app_status() -> Dict[str, Any]:
         "routers_loaded": {
             "simple_bls_router": simple_bls_router is not None,
             "bls_router": bls_router is not None,
+            "simple_health_router": simple_health_router is not None,
             "processing_router": processing_router is not None,
             "storage_router": storage_router is not None,
             "scraper_router": scraper_router is not None,

@@ -121,6 +121,14 @@ def demo_milk_scraping() -> Dict[str, Any]:
                         "size": "1 gallon",
                         "unit": "gallon",
                         "on_sale": True
+                    },
+                    {
+                        "name": "Simply Balanced Organic Whole Milk",
+                        "price": 4.29,
+                        "brand": "Simply Balanced",
+                        "size": "1 gallon",
+                        "unit": "gallon",
+                        "on_sale": False
                     }
                 ]
             }
@@ -176,9 +184,9 @@ def scrape_category() -> Dict[str, Any]:
                         "on_sale": False
                     },
                     {
-                        "name": "Great Value Whole Milk",
+                        "name": "Market Pantry Whole Milk",
                         "price": 2.98,
-                        "brand": "Great Value",
+                        "brand": "Market Pantry",
                         "size": "1 gallon",
                         "unit": "gallon",
                         "normalized_price": 2.98,
@@ -220,9 +228,9 @@ def scrape_search() -> Dict[str, Any]:
                         "on_sale": True
                     },
                     {
-                        "name": "Horizon Organic Whole Milk",
-                        "price": 4.79,
-                        "brand": "Horizon",
+                        "name": "Market Pantry Whole Milk",
+                        "price": 2.98,
+                        "brand": "Market Pantry",
                         "size": "1 gallon",
                         "unit": "gallon",
                         "on_sale": False

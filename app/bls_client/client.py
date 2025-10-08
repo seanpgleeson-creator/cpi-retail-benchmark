@@ -224,7 +224,7 @@ class BLSAPIClient:
             logger.error(f"Unexpected error in BLS API request: {e}")
             raise BLSAPIError(f"Unexpected error: {e}")
 
-    async def fetch_series_data(
+    def fetch_series_data(
         self,
         series_ids: Union[str, List[str]],
         start_year: int,
@@ -247,7 +247,7 @@ class BLSAPIClient:
 
         Example:
             >>> client = BLSAPIClient()
-            >>> data = await client.fetch_series_data(
+            >>> data = client.fetch_series_data(
             ...     ["CUUR0000SEFJ01"],  # CPI for milk
             ...     2020, 2023
             ... )

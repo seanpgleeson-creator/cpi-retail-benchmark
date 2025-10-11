@@ -200,9 +200,12 @@ def scrape_category() -> Dict[str, Any]:
 
 
 @router.post("/api/v1/scrapers/search")
-def scrape_search(request: dict = None) -> Dict[str, Any]:
+def scrape_search() -> Dict[str, Any]:
     """Search and scrape products with dynamic mock data based on search query"""
-    from fastapi import Request
+    from fastapi import Body
+    
+    # In a real implementation, we'd get the search query from the request body
+    # For now, we'll simulate different searches based on a counter to show variety
     
     # Mock data for different search terms
     mock_data = {
@@ -284,7 +287,33 @@ def scrape_search(request: dict = None) -> Dict[str, Any]:
                 "on_sale": False
             }
         ],
-        "default": [  # Default milk products for other searches
+        "chicken": [
+            {
+                "name": "Good & Gather Chicken Breast",
+                "price": 4.99,
+                "brand": "Good & Gather",
+                "size": "1 lb",
+                "unit": "pound",
+                "on_sale": False
+            },
+            {
+                "name": "Perdue Chicken Thighs",
+                "price": 3.49,
+                "brand": "Perdue",
+                "size": "1 lb",
+                "unit": "pound",
+                "on_sale": True
+            },
+            {
+                "name": "Market Pantry Chicken Wings",
+                "price": 5.99,
+                "brand": "Market Pantry",
+                "size": "2 lb",
+                "unit": "package",
+                "on_sale": False
+            }
+        ],
+        "milk": [  # Milk products for milk searches
             {
                 "name": "Good & Gather Whole Milk",
                 "price": 3.49,
@@ -312,20 +341,22 @@ def scrape_search(request: dict = None) -> Dict[str, Any]:
         ]
     }
     
-    # Try to determine search term from common patterns
-    # In real implementation, this would come from request body
-    # For now, we'll cycle through different products
-    import random
-    search_terms = ["bread", "eggs", "coffee", "default"]
-    selected_term = random.choice(search_terms)
+    # Use a simple counter to cycle through different product types
+    # This simulates variety while being predictable for testing
+    import time
+    cycle_products = ["bread", "eggs", "coffee", "chicken", "milk"]
+    # Use current second to determine which product type to show
+    selected_index = int(time.time()) % len(cycle_products)
+    selected_term = cycle_products[selected_index]
     
-    products = mock_data.get(selected_term, mock_data["default"])
+    products = mock_data.get(selected_term, mock_data["milk"])
     
     return {
         "success": True,
-        "message": f"Product search completed for '{selected_term}'",
+        "message": f"Product search completed - showing {selected_term} products",
+        "search_note": "Mock data cycles through different product types for testing variety",
         "total_products_found": len(products),
-        "processing_time_seconds": round(random.uniform(1.2, 2.5), 1),
+        "processing_time_seconds": round(1.5 + (selected_index * 0.2), 1),
         "results_by_retailer": {
             "target": {
                 "success": True,

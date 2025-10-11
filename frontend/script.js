@@ -590,6 +590,8 @@ async function scrapeMilkDemo() {
 
 // Display scraping results
 function displayScrapingResults(data) {
+    console.log('🎨 Displaying scraping results:', data);
+    
     const resultsContainer = document.getElementById('scraping-results');
     const metaElement = document.getElementById('scraping-meta');
     const productsContainer = document.getElementById('scraped-products');
@@ -603,9 +605,14 @@ function displayScrapingResults(data) {
     // Clear and populate products
     productsContainer.innerHTML = '';
     
+    console.log('🏪 Processing retailers:', Object.keys(data.results_by_retailer));
+    
     Object.entries(data.results_by_retailer).forEach(([retailer, result]) => {
+        console.log(`🛒 ${retailer} result:`, result);
         if (result.success && result.products) {
+            console.log(`📦 ${retailer} products:`, result.products);
             result.products.forEach(product => {
+                console.log('🏷️ Creating card for product:', product.name);
                 const productCard = createProductCard(retailer, product);
                 productsContainer.appendChild(productCard);
             });

@@ -607,6 +607,26 @@ function displayScrapingResults(data) {
     
     console.log('🏪 Processing retailers:', Object.keys(data.results_by_retailer));
     
+    // Check if we have any products at all
+    if (data.total_products_found === 0) {
+        const noResultsDiv = document.createElement('div');
+        noResultsDiv.className = 'no-results';
+        noResultsDiv.innerHTML = `
+            <div class="text-center py-8">
+                <div class="text-6xl mb-4">🔍</div>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">No Products Found</h3>
+                <p class="text-gray-500 mb-4">${data.message}</p>
+                ${data.available_categories ? `
+                    <div class="text-sm text-gray-400">
+                        <strong>Available categories:</strong> ${data.available_categories.join(', ')}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        productsContainer.appendChild(noResultsDiv);
+        return;
+    }
+    
     Object.entries(data.results_by_retailer).forEach(([retailer, result]) => {
         console.log(`🛒 ${retailer} result:`, result);
         if (result.success && result.products) {

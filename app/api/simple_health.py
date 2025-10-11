@@ -371,7 +371,7 @@ def scrape_search(request_body: Dict[str, Any]) -> Dict[str, Any]:
     }
     
     # Determine which products to return based on search query
-    selected_term = "milk"  # default
+    selected_term = None
     
     if "bread" in search_query:
         selected_term = "bread"
@@ -386,7 +386,26 @@ def scrape_search(request_body: Dict[str, Any]) -> Dict[str, Any]:
     elif "milk" in search_query:
         selected_term = "milk"
     
-    products = mock_data.get(selected_term, mock_data["milk"])
+    # Handle no matches
+    if selected_term is None or selected_term not in mock_data:
+        return {
+            "success": True,
+            "message": f"No products found for '{search_query}'. Try searching for: bread, eggs, coffee, chicken, beef, or milk.",
+            "search_query": search_query,
+            "product_type": "none",
+            "total_products_found": 0,
+            "processing_time_seconds": 0.5,
+            "results_by_retailer": {
+                "target": {
+                    "success": True,
+                    "products": []
+                }
+            },
+            "available_categories": ["bread", "eggs", "coffee", "chicken", "beef", "milk"],
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    products = mock_data[selected_term]
     
     return {
         "success": True,

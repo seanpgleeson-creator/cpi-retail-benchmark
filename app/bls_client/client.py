@@ -22,6 +22,46 @@ from .exceptions import BLSAPIError, BLSConnectionError, BLSDataError, BLSRateLi
 
 logger = logging.getLogger(__name__)
 
+# Known BLS series metadata mapping
+BLS_SERIES_METADATA = {
+    "CUUR0000SEFJ01": {
+        "title": "Consumer Price Index for All Urban Consumers: Milk in U.S. City Average",
+        "units": "Index 1982-1984=100",
+        "seasonal_adjustment": "Not Seasonally Adjusted",
+        "category": "Food and Beverages - Dairy"
+    },
+    "CUUR0000SEFD": {
+        "title": "Consumer Price Index for All Urban Consumers: Cereals and bakery products in U.S. City Average",
+        "units": "Index 1982-1984=100", 
+        "seasonal_adjustment": "Not Seasonally Adjusted",
+        "category": "Food and Beverages - Bakery"
+    },
+    "CUUR0000SA0": {
+        "title": "Consumer Price Index for All Urban Consumers: All Items in U.S. City Average",
+        "units": "Index 1982-1984=100",
+        "seasonal_adjustment": "Not Seasonally Adjusted", 
+        "category": "All Items"
+    },
+    "CUUR0000SETB01": {
+        "title": "Consumer Price Index for All Urban Consumers: Gasoline (all types) in U.S. City Average",
+        "units": "Index 1982-1984=100",
+        "seasonal_adjustment": "Not Seasonally Adjusted",
+        "category": "Transportation - Energy"
+    },
+    "CUUR0000SEFF": {
+        "title": "Consumer Price Index for All Urban Consumers: Meats, poultry, fish, and eggs in U.S. City Average", 
+        "units": "Index 1982-1984=100",
+        "seasonal_adjustment": "Not Seasonally Adjusted",
+        "category": "Food and Beverages - Protein"
+    },
+    "APU0000709112": {
+        "title": "Average Price Data: Milk, fresh, whole, fortified, per 1/2 gal. (1.9 lit) in U.S. City Average",
+        "units": "U.S. dollars per 1/2 gallon",
+        "seasonal_adjustment": "Not Seasonally Adjusted",
+        "category": "Average Prices - Dairy"
+    }
+}
+
 
 class BLSAPIClient:
     """
@@ -315,12 +355,20 @@ class BLSAPIClient:
             raise BLSDataError(f"No data found for series {series_id}")
 
         series_data = data["Results"]["series"][0]
+        
+        # Check if series has any actual data
+        if not series_data.get("data") or len(series_data.get("data", [])) == 0:
+            raise BLSDataError(f"Series {series_id} exists but contains no data")
+        
+        # Get metadata from our mapping or use defaults
+        metadata = BLS_SERIES_METADATA.get(series_id, {})
 
         return {
             "series_id": series_data.get("seriesID"),
-            "title": series_data.get("title", "Unknown"),
-            "units": series_data.get("units", "Unknown"),
-            "seasonal_adjustment": series_data.get("seasonalAdjustment", "Unknown"),
+            "title": metadata.get("title", f"BLS Series {series_id}"),
+            "units": metadata.get("units", "Index or Price Units"),
+            "seasonal_adjustment": metadata.get("seasonal_adjustment", "Not Seasonally Adjusted"),
+            "category": metadata.get("category", "Economic Data"),
             "last_updated": datetime.now().isoformat(),
             "data_points": len(series_data.get("data", [])),
             "latest_value": (

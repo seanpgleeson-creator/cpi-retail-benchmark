@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.bls_client import BLSAPIClient, BLSAPIError
+from app.bls_client.exceptions import BLSDataError
 from app.config import settings
 
 router = APIRouter(prefix="/api/v1/bls", tags=["BLS Data"])
@@ -39,6 +40,7 @@ class SeriesInfoResponse(BaseModel):
     title: str
     units: str
     seasonal_adjustment: str
+    category: str
     last_updated: str
     data_points: int
     latest_value: Union[str, None]
@@ -77,8 +79,10 @@ def get_series_info(series_id: str) -> SeriesInfoResponse:
         client = BLSAPIClient(api_key=settings.bls_api_key)
         info = client.get_series_info(series_id)
         return SeriesInfoResponse(**info)
+    except BLSDataError as e:
+        raise HTTPException(status_code=404, detail=f"Series not found: {str(e)}")
     except BLSAPIError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=f"BLS API error: {str(e)}")
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to fetch series info: {str(e)}"
@@ -101,8 +105,10 @@ def get_latest_data(
         client = BLSAPIClient(api_key=settings.bls_api_key)
         data = client.fetch_latest_data([series_id], months=months)
         return data
+    except BLSDataError as e:
+        raise HTTPException(status_code=404, detail=f"Series not found: {str(e)}")
     except BLSAPIError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=f"BLS API error: {str(e)}")
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to fetch latest data: {str(e)}"

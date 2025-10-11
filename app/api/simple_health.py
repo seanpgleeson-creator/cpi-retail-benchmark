@@ -200,12 +200,15 @@ def scrape_category() -> Dict[str, Any]:
 
 
 @router.post("/api/v1/scrapers/search")
-def scrape_search() -> Dict[str, Any]:
+def scrape_search(request_body: Dict[str, Any]) -> Dict[str, Any]:
     """Search and scrape products with dynamic mock data based on search query"""
-    from fastapi import Body
     
-    # In a real implementation, we'd get the search query from the request body
-    # For now, we'll simulate different searches based on a counter to show variety
+    # Extract search query from request body
+    search_query = ""
+    if request_body and "query" in request_body:
+        search_query = request_body["query"].lower().strip()
+    
+    print(f"DEBUG: Received search query: '{search_query}'")
     
     # Mock data for different search terms
     mock_data = {
@@ -341,22 +344,29 @@ def scrape_search() -> Dict[str, Any]:
         ]
     }
     
-    # Use a simple counter to cycle through different product types
-    # This simulates variety while being predictable for testing
-    import time
-    cycle_products = ["bread", "eggs", "coffee", "chicken", "milk"]
-    # Use current second to determine which product type to show
-    selected_index = int(time.time()) % len(cycle_products)
-    selected_term = cycle_products[selected_index]
+    # Determine which products to return based on search query
+    selected_term = "milk"  # default
+    
+    if "bread" in search_query:
+        selected_term = "bread"
+    elif "egg" in search_query:
+        selected_term = "eggs"
+    elif "coffee" in search_query:
+        selected_term = "coffee"
+    elif "chicken" in search_query:
+        selected_term = "chicken"
+    elif "milk" in search_query:
+        selected_term = "milk"
     
     products = mock_data.get(selected_term, mock_data["milk"])
     
     return {
         "success": True,
-        "message": f"Product search completed - showing {selected_term} products",
-        "search_note": "Mock data cycles through different product types for testing variety",
+        "message": f"Product search completed for '{search_query}' - found {selected_term} products",
+        "search_query": search_query,
+        "product_type": selected_term,
         "total_products_found": len(products),
-        "processing_time_seconds": round(1.5 + (selected_index * 0.2), 1),
+        "processing_time_seconds": 1.8,
         "results_by_retailer": {
             "target": {
                 "success": True,

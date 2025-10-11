@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.bls_client import BLSAPIClient, BLSAPIError
-from app.bls_client.exceptions import BLSDataError
+from app.bls_client.exceptions import BLSDataError, BLSConnectionError, BLSRateLimitError
 from app.config import settings
 
 router = APIRouter(prefix="/api/v1/bls", tags=["BLS Data"])

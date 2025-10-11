@@ -341,6 +341,32 @@ def scrape_search(request_body: Dict[str, Any]) -> Dict[str, Any]:
                 "unit": "gallon",
                 "on_sale": False
             }
+        ],
+        "beef": [  # Beef products for beef/ground beef searches
+            {
+                "name": "Good & Gather Ground Beef 80/20",
+                "price": 4.99,
+                "brand": "Good & Gather",
+                "size": "1 lb",
+                "unit": "pound",
+                "on_sale": False
+            },
+            {
+                "name": "Simply Balanced Organic Ground Beef",
+                "price": 6.99,
+                "brand": "Simply Balanced",
+                "size": "1 lb",
+                "unit": "pound",
+                "on_sale": True
+            },
+            {
+                "name": "Market Pantry Ground Beef 85/15",
+                "price": 5.49,
+                "brand": "Market Pantry",
+                "size": "1 lb",
+                "unit": "pound",
+                "on_sale": False
+            }
         ]
     }
     
@@ -355,6 +381,8 @@ def scrape_search(request_body: Dict[str, Any]) -> Dict[str, Any]:
         selected_term = "coffee"
     elif "chicken" in search_query:
         selected_term = "chicken"
+    elif "beef" in search_query or "ground" in search_query:
+        selected_term = "beef"
     elif "milk" in search_query:
         selected_term = "milk"
     

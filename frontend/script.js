@@ -538,6 +538,8 @@ async function startScraping() {
             requestBody.category = category;
         }
         
+        console.log('🔍 Scraping request:', requestBody);
+        
         const response = await fetchAPI('/api/v1/scrapers/search', {
             method: 'POST',
             headers: {
@@ -545,6 +547,8 @@ async function startScraping() {
             },
             body: JSON.stringify(requestBody)
         });
+        
+        console.log('📦 Scraping response:', response);
         
         hideScrapingStatus();
         
